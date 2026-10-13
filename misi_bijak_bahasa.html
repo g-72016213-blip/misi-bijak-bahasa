@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🌟 Misi Bijak Bahasa – Lengkapkan Ayat!</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        :root {
+            --pastel-blue: #D6EFFF;
+            --pastel-green: #D4F4DD;
+            --pastel-yellow: #FFF8D6;
+            --pastel-pink: #FFE1E8;
+            --pastel-purple: #E8DFF5;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--pastel-blue);
+            background-image: radial-gradient(var(--pastel-purple) 2px, transparent 2px), radial-gradient(var(--pastel-pink) 2px, transparent 2px);
+            background-size: 40px 40px;
+            background-position: 0 0, 20px 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: #334155;
+            overflow-x: hidden;
+        }
+
+        /* Animations */
+        @keyframes bounceIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .animate-bounce-in {
+            animation: bounceIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        .animate-shake {
+            animation: shake 0.4s ease-in-out;
+        }
+
+        /* Button Hover and Active States */
+        .btn-option {
+            transition: all 0.2s ease;
+            box-shadow: 0 6px 0px rgba(0,0,0,0.1);
+        }
+        
+        .btn-option:active:not(:disabled) {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0px rgba(0,0,0,0.1);
+        }
+
+        .btn-option.correct {
+            background-color: #22c55e !important; /* Tailwind green-500 */
+            color: white !important;
+            border-color: #16a34a !important;
+            transform: scale(1.02);
+            box-shadow: 0 0 15px rgba(34, 197, 94, 0.5);
+        }
+
+        .btn-option.wrong {
+            background-color: #ef4444 !important; /* Tailwind red-500 */
+            color: white !important;
+            border-color: #dc2626 !important;
+            opacity: 0.7;
+        }
+
+        .btn-option:disabled {
+            cursor: not-allowed;
+        }
+
+        /* Print Styles for Certificate */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            body {
+                background: white !important;
+            }
+            #screen-result, #screen-result * {
+                visibility: visible;
+            }
+            #screen-result {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .cert-container {
+                box-shadow: none !important;
+                border: 10px solid #f59e0b !important;
+                width: 100% !important;
+                height: 100% !important;
+                page-break-after: always;
+            }
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8 flex items-center justify-center">
+
+    <div class="max-w-4xl w-full mx-auto flex-1 flex flex-col justify-center">
+
+        <!-- ================= WELCOME SCREEN ================= -->
+        <div id="screen-welcome" class="bg-white rounded-[2rem] shadow-2xl p-8 sm:p-12 text-center border-8 border-white animate-bounce-in mx-auto w-full max-w-2xl relative overflow-hidden">
+            <!-- Decorative blobs -->
+            <div class="absolute -top-10 -left-10 w-32 h-32 bg-yellow-200 rounded-full mix-blend-multiply filter blur-xl opacity-70"></div>
+            <div class="absolute -bottom-10 -right-10 w-32 h-32 bg-pink-200 rounded-full mix-blend-multiply filter blur-xl opacity-70"></div>
+            
+            <div class="text-7xl mb-6 drop-shadow-md">🚀📚🌟</div>
+            <h1 class="text-4xl sm:text-5xl font-black text-blue-600 mb-4 leading-tight uppercase tracking-wide">Misi Bijak Bahasa</h1>
+            <h2 class="text-2xl sm:text-3xl font-bold text-pink-500 mb-8 bg-pink-50 py-2 px-6 rounded-full inline-block border-2 border-pink-200">Lengkapkan Ayat!</h2>
+            
+            <p class="text-xl text-slate-600 font-bold mb-8">Pendidikan Khas - Perkataan KVKVKV</p>
+            
+            <div class="mb-8 max-w-md mx-auto">
+                <label for="player-name" class="block text-2xl font-extrabold text-slate-700 mb-3">Siapa Nama Kamu?</label>
+                <input type="text" id="player-name" placeholder="Tulis nama di sini..." class="w-full text-center text-3xl font-bold p-5 rounded-2xl border-4 border-blue-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-200 focus:outline-none transition-all shadow-inner text-blue-800 placeholder-blue-300">
+                <p id="name-error" class="text-red-500 font-bold mt-2 hidden animate-shake">Sila tulis nama kamu dahulu ya!</p>
+            </div>
+            
+            <button onclick="startGame()" class="w-full sm:w-auto bg-gradient-to-b from-blue-400 to-blue-600 hover:from-blue-500 hover:to-blue-700 text-white font-black text-3xl py-4 px-12 rounded-2xl shadow-[0_8px_0_#1d4ed8] active:shadow-[0_0px_0_#1d4ed8] active:translate-y-2 transition-all border-2 border-blue-300 flex items-center justify-center gap-3 mx-auto">
+                <span>MULA BERMAIN</span>
+                <span class="text-4xl">🎮</span>
+            </button>
+        </div>
+
+        <!-- ================= GAME SCREEN ================= -->
+        <div id="screen-game" class="hidden w-full max-w-3xl mx-auto flex-col gap-6">
+            
+            <!-- Header Bar -->
+            <div class="bg-white rounded-2xl p-4 shadow-lg border-4 border-white flex justify-between items-center relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-r from-blue-50 to-pink-50 opacity-50"></div>
+                <div class="relative z-10 flex items-center gap-3">
+                    <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-2xl shadow-inner border-2 border-blue-200">👦🏻</div>
+                    <div>
+                        <p class="text-sm font-bold text-slate-400 uppercase tracking-wide">Pemain</p>
+                        <p id="display-name" class="text-xl sm:text-2xl font-black text-blue-700 leading-none">Nama</p>
+                    </div>
+                </div>
+                <div class="relative z-10 flex items-center gap-2 bg-yellow-100 px-5 py-2 rounded-xl border-2 border-yellow-300 shadow-sm">
+                    <span class="text-3xl filter drop-shadow-sm">⭐</span>
+                    <span id="score-display" class="text-2xl sm:text-3xl font-black text-yellow-600">0</span>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="bg-white rounded-full p-2 shadow-sm border-2 border-slate-100 flex items-center gap-4">
+                <span id="progress-text" class="font-extrabold text-slate-500 whitespace-nowrap ml-2 text-lg">Soalan 1 / 20</span>
+                <div class="flex-1 bg-slate-100 rounded-full h-4 sm:h-6 overflow-hidden border border-slate-200">
+                    <div id="progress-bar" class="bg-gradient-to-r from-green-400 to-green-500 h-full rounded-full transition-all duration-500 ease-out shadow-inner" style="width: 5%"></div>
+                </div>
+            </div>
+
+            <!-- Question Card -->
+            <div class="bg-white rounded-[2rem] shadow-xl p-6 sm:p-10 border-b-8 border-r-8 border-slate-200 animate-bounce-in relative">
+                
+                <div class="flex justify-between items-start mb-6">
+                    <h3 class="text-3xl font-black text-slate-700">Pilih jawapan yang betul:</h3>
+                    <button onclick="readQuestion()" class="bg-blue-100 hover:bg-blue-200 text-blue-700 p-3 rounded-xl transition shadow border-2 border-blue-200 active:scale-95" title="Dengar Ayat">
+                        <span class="text-3xl block">🔊</span>
+                    </button>
+                </div>
+
+                <!-- Sentence Display -->
+                <div id="sentence-container" class="text-2xl sm:text-4xl font-extrabold text-slate-800 leading-relaxed mb-10 min-h-[100px] flex items-center">
+                    Ayah memandu <span class="inline-block w-40 sm:w-48 border-b-4 border-dashed border-slate-400 mx-2 text-blue-600 text-center">_____</span> ke pejabat.
+                </div>
+
+                <!-- Options Grid -->
+                <div id="options-container" class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                    <!-- JS will inject buttons here -->
+                </div>
+
+                <!-- Feedback Section (Hidden initially) -->
+                <div id="feedback-container" class="hidden mt-6 p-5 rounded-2xl animate-bounce-in border-4">
+                    <div class="flex items-center gap-4 mb-2">
+                        <span id="feedback-icon" class="text-4xl">✅</span>
+                        <h4 id="feedback-title" class="text-2xl sm:text-3xl font-black">Tahniah! Betul!</h4>
+                    </div>
+                    <p id="feedback-text" class="text-xl sm:text-2xl font-bold text-slate-700 mt-2 bg-white/50 p-3 rounded-xl"></p>
+                    
+                    <button onclick="nextQuestion()" class="mt-6 w-full bg-gradient-to-b from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 text-white font-black text-2xl py-4 rounded-xl shadow-[0_6px_0_#16a34a] active:shadow-[0_0px_0_#16a34a] active:translate-y-2 transition-all border-2 border-green-300">
+                        SETERUSNYA ➡️
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= RESULT SCREEN ================= -->
+        <div id="screen-result" class="hidden w-full mx-auto flex-col items-center justify-center py-4">
+            
+            <div id="certificate-area" class="cert-container bg-white rounded-[3rem] shadow-2xl p-8 sm:p-14 text-center border-[12px] border-double border-yellow-400 w-full max-w-3xl relative overflow-hidden bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMiIgZmlsbD0iI2YxZjViOSIvPjwvc3ZnPg==')]">
+                
+                <!-- Corner Decorations -->
+                <div class="absolute top-4 left-4 text-5xl opacity-80">🎀</div>
+                <div class="absolute top-4 right-4 text-5xl opacity-80">🏆</div>
+                <div class="absolute bottom-4 left-4 text-5xl opacity-80">✨</div>
+                <div class="absolute bottom-4 right-4 text-5xl opacity-80">🌟</div>
+
+                <div class="mb-6">
+                    <h1 class="text-4xl sm:text-5xl font-black text-pink-500 uppercase tracking-widest drop-shadow-sm mb-2">Sijil Pencapaian</h1>
+                    <div class="h-2 w-32 bg-yellow-400 mx-auto rounded-full"></div>
+                </div>
+
+                <h2 class="text-2xl sm:text-3xl font-bold text-slate-600 mb-8">Dengan bangganya dianugerahkan kepada:</h2>
+                
+                <h3 id="cert-name" class="text-5xl sm:text-6xl font-black text-blue-700 mb-8 border-b-4 border-dashed border-blue-200 inline-block pb-4 px-12 capitalize leading-tight">Nama Murid</h3>
+                
+                <p class="text-xl sm:text-2xl text-slate-700 font-bold leading-relaxed mb-6">
+                    Kerana berjaya menamatkan <br>
+                    <span class="text-3xl text-pink-600 font-black inline-block mt-2">Misi Bijak Bahasa: Lengkapkan Ayat!</span>
+                </p>
+
+                <div class="flex justify-center items-center gap-6 mb-8">
+                    <div class="bg-yellow-100 p-6 rounded-3xl border-4 border-yellow-300 shadow-inner transform rotate-[-3deg]">
+                        <p class="text-lg font-bold text-yellow-800 uppercase mb-1">Markah Anda</p>
+                        <p class="text-5xl font-black text-yellow-600"><span id="final-score">20</span><span class="text-3xl text-yellow-500">/20</span></p>
+                    </div>
+                    <div id="star-reward" class="text-6xl sm:text-7xl filter drop-shadow-lg flex gap-2">
+                        <!-- Stars injected via JS -->
+                    </div>
+                </div>
+
+                <p id="motivational-message" class="text-2xl font-black text-green-600 bg-green-50 py-3 px-8 rounded-full border-2 border-green-200 inline-block">Kamu Sangat Hebat!</p>
+                
+                <div class="mt-12 flex justify-between items-end border-t-4 border-slate-100 pt-6 px-4">
+                    <div class="text-left">
+                        <p class="font-bold text-slate-400 uppercase text-sm">Tarikh</p>
+                        <p id="cert-date" class="font-black text-xl text-slate-700">1 Jan 2026</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-bold text-slate-400 uppercase text-sm">Tandatangan</p>
+                        <p class="font-black text-2xl text-blue-400 signature-font italic">Cikgu Hebat</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls (Hidden on Print) -->
+            <div class="mt-10 flex flex-col sm:flex-row gap-4 w-full max-w-xl no-print">
+                <button onclick="window.print()" class="flex-1 bg-purple-500 hover:bg-purple-600 text-white font-black text-2xl py-4 px-6 rounded-2xl shadow-[0_6px_0_#9333ea] active:shadow-[0_0px_0_#9333ea] active:translate-y-2 transition-all border-2 border-purple-300 flex items-center justify-center gap-3">
+                    <span>🖨️ CETAK SIJIL</span>
+                </button>
+                <button onclick="resetGame()" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-black text-2xl py-4 px-6 rounded-2xl shadow-[0_6px_0_#2563eb] active:shadow-[0_0px_0_#2563eb] active:translate-y-2 transition-all border-2 border-blue-300 flex items-center justify-center gap-3">
+                    <span>🔄 MAIN LAGI</span>
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // 1. Data Soalan (20 Questions - Pola KVKVKV strict)
+        const allQuestions = [
+            { text: "Ayah memandu _____ ke pejabat setiap pagi.", blank: "KERETA", options: ["KERETA", "KELAPA", "KAMERA"], explanation: "Kereta ialah kenderaan yang dipandu di jalan raya." },
+            { text: "Datuk memetik buah _____ muda di kebun.", blank: "KELAPA", options: ["KELAPA", "PERAHU", "DELIMA"], explanation: "Buah kelapa muda airnya manis dan sedap diminum." },
+            { text: "Abang mengambil gambar menggunakan _____ baharu.", blank: "KAMERA", options: ["KAMERA", "KERETA", "KEMEJA"], explanation: "Kamera digunakan untuk mengambil gambar." },
+            { text: "Nelayan itu mendayung _____ di sungai.", blank: "PERAHU", options: ["PERAHU", "KERUSI", "PEDATI"], explanation: "Perahu ialah kenderaan air yang didayung." },
+            { text: "Kami sekeluarga melawat _____ Berkembar Petronas.", blank: "MENARA", options: ["MENARA", "KEPALA", "KELAPA"], explanation: "Menara ialah bangunan yang dibina sangat tinggi." },
+            { text: "Adik memakai topi di _____ kerana cuaca panas.", blank: "KEPALA", options: ["KEPALA", "TOMATO", "KEMEJA"], explanation: "Topi sentiasa dipakai di atas kepala." },
+            { text: "Ibu membeli buah _____ yang merah dan manis.", blank: "DELIMA", options: ["DELIMA", "KELAPA", "TOMATO"], explanation: "Buah delima berwarna merah dan mempunyai banyak biji manis." },
+            { text: "Kakak memotong _____ untuk dimasukkan ke dalam salad.", blank: "TOMATO", options: ["TOMATO", "DELIMA", "KELAPA"], explanation: "Tomato ialah sayuran berwarna merah yang berkhasiat." },
+            { text: "Murid-murid duduk di atas _____ di dalam kelas.", blank: "KERUSI", options: ["KERUSI", "SEPATU", "KEMEJA"], explanation: "Kerusi ialah perabot yang digunakan untuk duduk." },
+            { text: "Nenek memasang _____ di halaman rumah pada waktu malam.", blank: "PELITA", options: ["PELITA", "KAMERA", "MENARA"], explanation: "Pelita dinyalakan menggunakan minyak untuk memberi cahaya." },
+            { text: "Bunga _____ itu berwarna putih dan berbau harum.", blank: "MELATI", options: ["MELATI", "KENARI", "PUTERI"], explanation: "Melati ialah sejenis bunga yang cantik dan wangi." },
+            { text: "Ayah memakai baju _____ berwarna biru ke tempat kerja.", blank: "KEMEJA", options: ["KEMEJA", "SEPATU", "KERUSI"], explanation: "Kemeja ialah baju yang berbutang dan mempunyai kolar." },
+            { text: "Datuk menaiki _____ lembu semasa di kampung.", blank: "PEDATI", options: ["PEDATI", "PERAHU", "KERETA"], explanation: "Pedati ialah kenderaan beroda yang ditarik oleh haiwan." },
+            { text: "Jangan bermain api kerana ia sangat _____.", blank: "BAHAYA", options: ["BAHAYA", "CAHAYA", "KETAWA"], explanation: "Bermain api boleh mendatangkan bahaya dan kecederaan." },
+            { text: "Burung _____ itu menyanyi dengan merdu di dalam sangkar.", blank: "KENARI", options: ["KENARI", "MELATI", "PUTERI"], explanation: "Kenari ialah sejenis burung kecil yang pandai menyanyi." },
+            { text: "Buku cerita itu mengisahkan seorang _____ yang sangat cantik.", blank: "PUTERI", options: ["PUTERI", "KENARI", "REMAJA"], explanation: "Puteri bermaksud anak perempuan kepada raja." },
+            { text: "Abang memakai _____ sukan sebelum pergi berjoging.", blank: "SEPATU", options: ["SEPATU", "KEMEJA", "KERETA"], explanation: "Sepatu adalah perkataan lain bagi kasut." },
+            { text: "Seorang _____ sedang menanam padi di sawah.", blank: "PETANI", options: ["PETANI", "REMAJA", "PUTERI"], explanation: "Petani ialah orang yang bekerja menanam tanaman seperti padi." },
+            { text: "Abang saya sudah membesar menjadi seorang _____.", blank: "REMAJA", options: ["REMAJA", "PETANI", "PUTERI"], explanation: "Remaja bermaksud orang muda yang sedang membesar." },
+            { text: "Kayu _____ itu mengeluarkan bau yang sangat wangi apabila dibakar.", blank: "GAHARU", options: ["GAHARU", "KELAPA", "TOMATO"], explanation: "Gaharu ialah sejenis kayu berharga yang berbau sangat wangi." }
+        ];
+
+        // 2. Variables
+        let playerName = "";
+        let score = 0;
+        let currentQuestionIndex = 0;
+        let shuffledQuestions = [];
+        let hasAnswered = false;
+
+        // DOM Elements
+        const screens = {
+            welcome: document.getElementById('screen-welcome'),
+            game: document.getElementById('screen-game'),
+            result: document.getElementById('screen-result')
+        };
+        const sentenceContainer = document.getElementById('sentence-container');
+        const optionsContainer = document.getElementById('options-container');
+        const feedbackContainer = document.getElementById('feedback-container');
+        const scoreDisplay = document.getElementById('score-display');
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('progress-text');
+
+        // Utility: Shuffle Array (Fisher-Yates)
+        function shuffle(array) {
+            let currentIndex = array.length, randomIndex;
+            while (currentIndex !== 0) {
+                randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex--;
+                [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+            }
+            return array;
+        }
+
+        // Initialize Game
+        function startGame() {
+            const nameInput = document.getElementById('player-name').value.trim();
+            const errorMsg = document.getElementById('name-error');
+            
+            if (nameInput === "") {
+                errorMsg.classList.remove('hidden');
+                // Re-trigger animation
+                errorMsg.style.animation = 'none';
+                errorMsg.offsetHeight; 
+                errorMsg.style.animation = null;
+                document.getElementById('player-name').focus();
+                return;
+            }
+            
+            errorMsg.classList.add('hidden');
+            playerName = nameInput;
+            document.getElementById('display-name').textContent = playerName;
+            
+            // Setup Game
+            score = 0;
+            currentQuestionIndex = 0;
+            shuffledQuestions = shuffle([...allQuestions]);
+            
+            switchScreen('game');
+            updateScoreDisplay();
+            loadQuestion();
+            
+            // Welcome voice greeting
+            speakText(`Selamat datang, ${playerName}. Mari kita lengkapkan ayat bersama-sama!`);
+        }
+
+        // Load Question Data into UI
+        function loadQuestion() {
+            hasAnswered = false;
+            feedbackContainer.classList.add('hidden');
+            
+            const q = shuffledQuestions[currentQuestionIndex];
+            
+            // Update Progress
+            const progressPercent = ((currentQuestionIndex) / shuffledQuestions.length) * 100;
+            progressBar.style.width = `${progressPercent}%`;
+            progressText.textContent = `Soalan ${currentQuestionIndex + 1} / ${shuffledQuestions.length}`;
+            
+            // Render Sentence
+            const blankHTML = `<span id="blank-space" class="inline-block min-w-[120px] sm:min-w-[160px] border-b-4 border-dashed border-slate-400 mx-2 text-center pb-1 text-slate-300 transition-all duration-300">_____</span>`;
+            sentenceContainer.innerHTML = q.text.replace("_____", blankHTML);
+            
+            // Render Options
+            optionsContainer.innerHTML = '';
+            const shuffledOptions = shuffle([...q.options]);
+            
+            shuffledOptions.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = `btn-option bg-white text-blue-600 font-black text-2xl sm:text-3xl py-4 sm:py-6 px-4 rounded-2xl border-4 border-blue-200 hover:bg-blue-50 focus:outline-none tracking-wide`;
+                btn.textContent = opt;
+                btn.onclick = () => handleAnswer(btn, opt, q.blank);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        // Handle User Selection
+        function handleAnswer(selectedBtn, selectedText, correctText) {
+            if (hasAnswered) return; // Prevent multiple clicks
+            hasAnswered = true;
+            
+            const isCorrect = (selectedText === correctText);
+            const buttons = optionsContainer.querySelectorAll('button');
+            const blankSpace = document.getElementById('blank-space');
+            
+            // Disable all buttons and style them
+            buttons.forEach(btn => {
+                btn.disabled = true;
+                if (btn.textContent === correctText) {
+                    btn.classList.add('correct');
+                } else if (btn === selectedBtn) {
+                    btn.classList.add('wrong');
+                } else {
+                    btn.style.opacity = '0.5';
+                }
+            });
+            
+            // Fill in the blank
+            blankSpace.textContent = correctText;
+            blankSpace.classList.remove('border-dashed', 'border-slate-400', 'text-slate-300');
+            blankSpace.classList.add('border-solid');
+            
+            // Setup Feedback UI
+            feedbackContainer.classList.remove('hidden');
+            const icon = document.getElementById('feedback-icon');
+            const title = document.getElementById('feedback-title');
+            const text = document.getElementById('feedback-text');
+            const q = shuffledQuestions[currentQuestionIndex];
+            
+            if (isCorrect) {
+                score++;
+                updateScoreDisplay();
+                
+                // Visual updates
+                blankSpace.classList.add('text-green-600', 'border-green-500');
+                feedbackContainer.className = 'mt-6 p-5 sm:p-6 rounded-2xl animate-bounce-in border-4 bg-green-100 border-green-300 block';
+                icon.textContent = '🌟';
+                title.textContent = 'HEBAT! Jawapan Betul.';
+                title.className = 'text-2xl sm:text-3xl font-black text-green-700';
+                text.textContent = q.explanation;
+                
+                // Small confetti pop
+                confetti({
+                    particleCount: 50,
+                    spread: 60,
+                    origin: { y: 0.8 },
+                    colors: ['#22c55e', '#fef08a']
+                });
+                
+                speakText(`Hebat! ${correctText}. ${q.explanation}`);
+                
+            } else {
+                // Visual updates
+                blankSpace.classList.add('text-red-500', 'border-red-400');
+                feedbackContainer.className = 'mt-6 p-5 sm:p-6 rounded-2xl animate-bounce-in border-4 bg-red-50 border-red-200 block';
+                icon.textContent = '💡';
+                title.textContent = 'Cuba lagi!';
+                title.className = 'text-2xl sm:text-3xl font-black text-red-600';
+                text.innerHTML = `Jawapan yang betul ialah <strong class="text-blue-700 text-3xl">${correctText}</strong>.<br><span class="text-lg sm:text-xl mt-2 block">${q.explanation}</span>`;
+                
+                speakText(`Jawapan kurang tepat. Jawapan yang betul ialah ${correctText}. ${q.explanation}`);
+            }
+        }
+
+        function nextQuestion() {
+            window.speechSynthesis.cancel(); // stop current audio
+            currentQuestionIndex++;
+            
+            if (currentQuestionIndex < shuffledQuestions.length) {
+                loadQuestion();
+            } else {
+                endGame();
+            }
+        }
+
+        function endGame() {
+            switchScreen('result');
+            
+            // Set final texts
+            document.getElementById('cert-name').textContent = playerName;
+            document.getElementById('final-score').textContent = score;
+            
+            // Set Date
+            const today = new Date();
+            const options = { day: 'numeric', month: 'long', year: 'numeric' };
+            document.getElementById('cert-date').textContent = today.toLocaleDateString('ms-MY', options);
+            
+            // Determine Star Reward & Message
+            let stars = '';
+            let msg = '';
+            
+            if (score >= 16) {
+                stars = '⭐⭐⭐';
+                msg = 'Sangat Cemerlang! Kamu Bijak!';
+            } else if (score >= 10) {
+                stars = '⭐⭐';
+                msg = 'Bagus! Teruskan Usaha!';
+            } else {
+                stars = '⭐';
+                msg = 'Bagus! Boleh cuba lagi nanti!';
+            }
+            
+            document.getElementById('star-reward').textContent = stars;
+            document.getElementById('motivational-message').textContent = msg;
+            
+            // Big Confetti
+            var duration = 3000;
+            var end = Date.now() + duration;
+            (function frame() {
+                confetti({
+                    particleCount: 7,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 },
+                    colors: ['#3b82f6', '#ec4899', '#eab308']
+                });
+                confetti({
+                    particleCount: 7,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 },
+                    colors: ['#3b82f6', '#ec4899', '#eab308']
+                });
+                if (Date.now() < end) {
+                    requestAnimationFrame(frame);
+                }
+            }());
+            
+            speakText(`Tahniah ${playerName}! Kamu berjaya mendapat ${score} markah daripada 20. ${msg}`);
+        }
+
+        function resetGame() {
+            window.speechSynthesis.cancel();
+            document.getElementById('player-name').value = '';
+            switchScreen('welcome');
+        }
+
+        function switchScreen(screenName) {
+            Object.values(screens).forEach(s => s.classList.add('hidden'));
+            screens[screenName].classList.remove('hidden');
+            screens[screenName].classList.add('flex');
+            
+            // Force scroll to top
+            window.scrollTo(0,0);
+        }
+
+        function updateScoreDisplay() {
+            scoreDisplay.textContent = score;
+            // Quick bounce animation for score
+            scoreDisplay.classList.remove('animate-bounce-in');
+            void scoreDisplay.offsetWidth; // trigger reflow
+            scoreDisplay.classList.add('animate-bounce-in');
+        }
+
+        // Web Speech API (Text-to-Speech)
+        function speakText(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel(); // Stop anything currently playing
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'ms-MY'; // Malay language
+                utterance.rate = 0.85;    // Slightly slower for special education
+                utterance.pitch = 1.1;    // Friendly pitch
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function readQuestion() {
+            const q = shuffledQuestions[currentQuestionIndex];
+            // Read sentence but replace _____ with "tempat kosong"
+            const spokenSentence = q.text.replace("_____", "tempat kosong");
+            
+            // Gather current visible options
+            const btns = Array.from(optionsContainer.querySelectorAll('button'));
+            const optionTexts = btns.map(b => b.textContent).join(', atau, ');
+            
+            speakText(`${spokenSentence}. Pilihan jawapan: ${optionTexts}`);
+        }
+        
+    </script>
+</body>
+</html>
